@@ -1,4 +1,3 @@
-// pages/index.js
 import { useState } from "react";
 
 export default function Home() {
@@ -7,18 +6,27 @@ export default function Home() {
   const [branch, setBranch] = useState("");
   const [context, setContext] = useState("");
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setResult(null);
 
-    const res = await fetch("/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ beast, kin, branch, context }),
-    });
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ beast, kin, branch, context }),
+      });
 
-    const data = await res.json();
-    setResult(data);
+      const data = await res.json();
+      setResult(data);
+    } catch (err) {
+      setResult({ error: "分析失敗，請檢查伺服器。" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,13 +92,17 @@ export default function Home() {
         </label>
         <br /><br />
 
-        <button type="submit">開始分析</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "分析中…" : "開始分析"}
+        </button>
       </form>
 
       {result && (
-        <div style={{ marginTop: "20px", padding: "10px", border: "1px solid gray" }}>
+        <div style={{ marginTop: "20px", padding: "15px", border: "1px solid gray" }}>
           <h2>分析結果：</h2>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
+          <div style={{ whiteSpace: "pre-line" }}>
+            {result.text || result.error || JSON.stringify(result, null, 2)}
+          </div>
         </div>
       )}
     </div>
