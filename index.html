@@ -1,104 +1,88 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <title>六獸分析系統</title>
+  <meta charset="UTF-8">
+  <title>新版分析介面</title>
   <style>
-    body { font-family: "Microsoft JhengHei", sans-serif; padding: 20px; }
-    h1 { color: #333; }
-    label { display: block; margin-top: 10px; }
-    select, input, button { margin-top: 5px; padding: 5px; }
-    #result { margin-top: 20px; white-space: pre-wrap; background: #f5f5f5; padding: 10px; border-radius: 6px; }
+    body { font-family: sans-serif; margin: 20px; }
+    label { display: block; margin: 10px 0 5px; }
+    select, button { padding: 5px; }
+    #result { margin-top: 20px; white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; }
   </style>
 </head>
 <body>
-  <h1>六獸分析系統2</h1>
-
+  <h1>這是新版分析介面</h1>
+  
   <form id="analyzeForm">
-    <!-- 六獸 -->
-    <label>
-      我方六獸：
-      <select id="beast" required>
-        <option value="">請選擇</option>
-        <option value="青龍">青龍</option>
-        <option value="朱雀">朱雀</option>
-        <option value="勾陳">勾陳</option>
-        <option value="螣蛇">螣蛇</option>
-        <option value="白虎">白虎</option>
-        <option value="玄武">玄武</option>
-      </select>
-    </label>
+    <label>六獸 (beast)</label>
+    <select id="beast" required>
+      <option value="">請選擇</option>
+      <option>青龍</option>
+      <option>朱雀</option>
+      <option>勾陳</option>
+      <option>螣蛇</option>
+      <option>白虎</option>
+      <option>玄武</option>
+    </select>
 
-    <!-- 六親 -->
-    <label>
-      我方六親：
-      <select id="kin" required>
-        <option value="">請選擇</option>
-        <option value="父母">父母</option>
-        <option value="兄弟">兄弟</option>
-        <option value="子孫">子孫</option>
-        <option value="妻財">妻財</option>
-        <option value="官鬼">官鬼</option>
-      </select>
-    </label>
+    <label>六親 (kin)</label>
+    <select id="kin" required>
+      <option value="">請選擇</option>
+      <option>父母</option>
+      <option>兄弟</option>
+      <option>子孫</option>
+      <option>妻財</option>
+      <option>官鬼</option>
+    </select>
 
-    <!-- 地支 -->
-    <label>
-      我方地支：
-      <select id="branch" required>
-        <option value="">請選擇</option>
-        <option value="子">子</option>
-        <option value="丑">丑</option>
-        <option value="寅">寅</option>
-        <option value="卯">卯</option>
-        <option value="辰">辰</option>
-        <option value="巳">巳</option>
-        <option value="午">午</option>
-        <option value="未">未</option>
-        <option value="申">申</option>
-        <option value="酉">酉</option>
-        <option value="戌">戌</option>
-        <option value="亥">亥</option>
-      </select>
-    </label>
+    <label>地支 (branch)</label>
+    <select id="branch" required>
+      <option value="">請選擇</option>
+      <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+      <option>辰</option><option>巳</option><option>午</option><option>未</option>
+      <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+    </select>
 
-    <!-- 情境 -->
-    <label>
-      分析情境：
-      <select id="context" required>
-        <option value="">請選擇</option>
-        <option value="個性分析">個性分析</option>
-        <option value="愛情">愛情</option>
-        <option value="性愛">性愛</option>
-        <option value="人際關係協調">人際關係協調</option>
-        <option value="跨部門協作">跨部門協作</option>
-        <option value="壓期交付專案">壓期交付專案</option>
-      </select>
-    </label>
+    <label>情境 (context)</label>
+    <select id="context" required>
+      <option value="">請選擇</option>
+      <option>個性分析</option>
+      <option>愛情</option>
+      <option>性愛</option>
+      <option>跨部門協作</option>
+      <option>壓期交付專案</option>
+    </select>
 
-    <button type="submit">一鍵分析</button>
+    <button type="submit">送出分析</button>
   </form>
 
   <div id="result"></div>
 
   <script>
-    document.getElementById("analyzeForm").addEventListener("submit", async (e) => {
+    const form = document.getElementById("analyzeForm");
+    const resultDiv = document.getElementById("result");
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const beast = document.getElementById("beast").value;
-      const kin = document.getElementById("kin").value;
-      const branch = document.getElementById("branch").value;
-      const context = document.getElementById("context").value;
+      resultDiv.textContent = "分析中...";
+
+      const body = {
+        beast: document.getElementById("beast").value,
+        kin: document.getElementById("kin").value,
+        branch: document.getElementById("branch").value,
+        context: document.getElementById("context").value
+      };
 
       try {
-        const resp = await fetch("/api/analyze", {
+        const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ aBeast: beast, aKin: kin, aBranch: branch, context })
+          body: JSON.stringify(body)
         });
-        const data = await resp.json();
-        document.getElementById("result").textContent = data.text || JSON.stringify(data, null, 2);
+        const data = await res.json();
+        resultDiv.textContent = data.text || JSON.stringify(data, null, 2);
       } catch (err) {
-        document.getElementById("result").textContent = "錯誤：" + err;
+        resultDiv.textContent = "發生錯誤：" + err.message;
       }
     });
   </script>
