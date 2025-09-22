@@ -6,7 +6,7 @@
   <style>
     body { font-family: sans-serif; margin: 20px; }
     label { display: block; margin: 10px 0 5px; }
-    select, button { padding: 5px; }
+    select, button { padding: 5px; margin-right: 5px; }
     #result { margin-top: 20px; white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; }
   </style>
 </head>
@@ -17,62 +17,54 @@
     <label>六獸 (beast)</label>
     <select id="beast" required>
       <option value="">請選擇</option>
-      <option>青龍</option>
-      <option>朱雀</option>
-      <option>勾陳</option>
-      <option>螣蛇</option>
-      <option>白虎</option>
-      <option>玄武</option>
+      <option value="青龍">青龍</option>
+      <option value="朱雀">朱雀</option>
+      <option value="勾陳">勾陳</option>
+      <option value="螣蛇">螣蛇</option>
+      <option value="白虎">白虎</option>
+      <option value="玄武">玄武</option>
     </select>
 
     <label>六親 (kin)</label>
     <select id="kin" required>
       <option value="">請選擇</option>
-      <option>父母</option>
-      <option>兄弟</option>
-      <option>子孫</option>
-      <option>妻財</option>
-      <option>官鬼</option>
+      <option value="父母">父母</option>
+      <option value="兄弟">兄弟</option>
+      <option value="子孫">子孫</option>
+      <option value="妻財">妻財</option>
+      <option value="官鬼">官鬼</option>
     </select>
 
     <label>地支 (branch)</label>
     <select id="branch" required>
       <option value="">請選擇</option>
-      <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-      <option>辰</option><option>巳</option><option>午</option><option>未</option>
-      <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+      <option value="子">子</option><option value="丑">丑</option><option value="寅">寅</option><option value="卯">卯</option>
+      <option value="辰">辰</option><option value="巳">巳</option><option value="午">午</option><option value="未">未</option>
+      <option value="申">申</option><option value="酉">酉</option><option value="戌">戌</option><option value="亥">亥</option>
     </select>
 
     <label>情境 (context)</label>
     <select id="context" required>
       <option value="">請選擇</option>
-      <option>個性分析</option>
-      <option>愛情</option>
-      <option>性愛</option>
-      <option>跨部門協作</option>
-      <option>壓期交付專案</option>
+      <option value="個性分析">個性分析</option>
+      <option value="愛情">愛情</option>
+      <option value="性愛">性愛</option>
+      <option value="跨部門協作">跨部門協作</option>
+      <option value="壓期交付專案">壓期交付專案</option>
     </select>
 
-    <button type="submit">送出分析</button>
+    <div style="margin-top: 15px;">
+      <button type="submit">送出分析</button>
+      <button type="button" id="testBtn">一鍵測試</button>
+    </div>
   </form>
 
   <div id="result"></div>
 
   <script>
-    const form = document.getElementById("analyzeForm");
-    const resultDiv = document.getElementById("result");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    async function callAPI(body) {
+      const resultDiv = document.getElementById("result");
       resultDiv.textContent = "分析中...";
-
-      const body = {
-        beast: document.getElementById("beast").value,
-        kin: document.getElementById("kin").value,
-        branch: document.getElementById("branch").value,
-        context: document.getElementById("context").value
-      };
-
       try {
         const res = await fetch("/api/analyze", {
           method: "POST",
@@ -84,6 +76,27 @@
       } catch (err) {
         resultDiv.textContent = "發生錯誤：" + err.message;
       }
+    }
+
+    // 表單送出
+    document.getElementById("analyzeForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      callAPI({
+        beast: document.getElementById("beast").value,
+        kin: document.getElementById("kin").value,
+        branch: document.getElementById("branch").value,
+        context: document.getElementById("context").value
+      });
+    });
+
+    // 一鍵測試
+    document.getElementById("testBtn").addEventListener("click", () => {
+      callAPI({
+        beast: "青龍",
+        kin: "妻財",
+        branch: "子",
+        context: "愛情"
+      });
     });
   </script>
 </body>
