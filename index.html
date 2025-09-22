@@ -1,163 +1,116 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <title>仙人指路分析系統</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>仙人指路分析介面</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      margin: 0 auto 20px auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    select, input, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    #result {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 600px;
+      margin: 20px auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      white-space: pre-line;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow">
-    <h1 class="text-2xl font-bold mb-6">仙人指路分析系統</h1>
+<body>
+  <h1>🌟 這是新版分析介面 🌟</h1>
 
-    <!-- 模式選擇 -->
-    <div class="mb-4">
-      <label class="block font-medium">模式</label>
-      <select id="mode" class="border rounded p-2 w-full">
-        <option value="single">單人</option>
-        <option value="dual">雙人</option>
-      </select>
-    </div>
+  <form id="analyzeForm">
+    <label>六獸：</label>
+    <select name="beast">
+      <option value="青龍">青龍</option>
+      <option value="朱雀">朱雀</option>
+      <option value="勾陳">勾陳</option>
+      <option value="螣蛇">螣蛇</option>
+      <option value="白虎">白虎</option>
+      <option value="玄武">玄武</option>
+    </select>
 
-    <!-- 我方輸入 -->
-    <div class="mb-4">
-      <h2 class="font-semibold">我方</h2>
-      <div class="grid grid-cols-3 gap-2">
-        <select id="aBeast" class="border p-2 rounded">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option>
-          <option>勾陳</option><option>螣蛇</option>
-          <option>白虎</option><option>玄武</option>
-        </select>
-        <select id="aKin" class="border p-2 rounded">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option>
-          <option>子孫</option><option>妻財</option>
-          <option>官鬼</option>
-        </select>
-        <select id="aBranch" class="border p-2 rounded">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
-      </div>
-    </div>
+    <label>六親：</label>
+    <select name="kin">
+      <option value="父母">父母</option>
+      <option value="兄弟">兄弟</option>
+      <option value="子孫">子孫</option>
+      <option value="妻財">妻財</option>
+      <option value="官鬼">官鬼</option>
+    </select>
 
-    <!-- 對方輸入 (雙人模式才顯示) -->
-    <div id="dualFields" class="mb-4 hidden">
-      <h2 class="font-semibold">對方</h2>
-      <div class="grid grid-cols-3 gap-2">
-        <select id="bBeast" class="border p-2 rounded">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option>
-          <option>勾陳</option><option>螣蛇</option>
-          <option>白虎</option><option>玄武</option>
-        </select>
-        <select id="bKin" class="border p-2 rounded">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option>
-          <option>子孫</option><option>妻財</option>
-          <option>官鬼</option>
-        </select>
-        <select id="bBranch" class="border p-2 rounded">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
-      </div>
-    </div>
+    <label>地支：</label>
+    <input type="text" name="branch" placeholder="例如：子、丑、寅" />
 
-    <!-- 情境選擇 -->
-    <div class="mb-4">
-      <label class="block font-medium">情境</label>
-      <select id="context" class="border rounded p-2 w-full">
-        <option value="">請選擇</option>
-        <option>個性分析</option>
-        <option>愛情</option>
-        <option>性愛</option>
-        <option>跨部門協作</option>
-        <option>壓期交付專案</option>
-      </select>
-    </div>
+    <label>情境：</label>
+    <input type="text" name="context" placeholder="例如：愛情、事業、健康" />
 
-    <!-- 性愛補充說明 -->
-    <div class="mb-4">
-      <label class="block font-medium">性愛補充（選填）</label>
-      <textarea id="sexDetail" class="border rounded p-2 w-full" placeholder="例如：重點：互動節奏與默契；補充：喜歡慢節奏…"></textarea>
-    </div>
+    <button type="submit">一鍵分析</button>
+  </form>
 
-    <!-- 按鈕 -->
-    <button id="analyzeBtn" class="bg-blue-600 text-white px-4 py-2 rounded">送出分析</button>
-
-    <!-- 結果區 -->
-    <div id="result" class="mt-6 space-y-4"></div>
-
-    <!-- 雷達圖 -->
-    <div class="mt-6">
-      <canvas id="chart"></canvas>
-    </div>
-  </div>
+  <div id="result">👉 分析結果會顯示在這裡</div>
 
   <script>
-    const dualFields = document.getElementById("dualFields");
-    document.getElementById("mode").addEventListener("change", e => {
-      dualFields.classList.toggle("hidden", e.target.value !== "dual");
-    });
+    document.getElementById("analyzeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    document.getElementById("analyzeBtn").addEventListener("click", async () => {
-      const body = {
-        mode: document.getElementById("mode").value,
-        aBeast: document.getElementById("aBeast").value,
-        aKin: document.getElementById("aKin").value,
-        aBranch: document.getElementById("aBranch").value,
-        bBeast: document.getElementById("bBeast").value,
-        bKin: document.getElementById("bKin").value,
-        bBranch: document.getElementById("bBranch").value,
-        context: document.getElementById("context").value,
-        sexDetail: document.getElementById("sexDetail").value
+      const formData = new FormData(e.target);
+      const payload = {
+        beast: formData.get("beast"),
+        kin: formData.get("kin"),
+        branch: formData.get("branch"),
+        context: formData.get("context")
       };
 
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
+      try {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-      // 把分析文字分段顯示
-      const resultEl = document.getElementById("result");
-      resultEl.innerHTML = "";
-      const textParts = data.text.split(/\n\n/);
-      textParts.forEach(part => {
-        if (!part.trim()) return;
-        const card = document.createElement("div");
-        card.className = "bg-gray-50 p-4 rounded border";
-        card.textContent = part.trim();
-        resultEl.appendChild(card);
-      });
-
-      // 抓 JSON 區塊繪圖
-      const match = data.text.match(/```json([\s\S]+?)```/);
-      if (match) {
-        try {
-          const parsed = JSON.parse(match[1]);
-          const ctx = document.getElementById("chart").getContext("2d");
-          new Chart(ctx, {
-            type: "radar",
-            data: {
-              labels: ["契合","溝通","節奏","責任","信任","創新"],
-              datasets: [{
-                label: "分數",
-                data: Object.values(parsed.scores),
-                borderColor: "blue",
-                backgroundColor: "rgba(0,0,255,0.2)"
-              }]
-            },
-            options: { scales: { r: { suggestedMin: 0, suggestedMax: 100 } } }
-          });
-        } catch (err) { console.error("JSON parse error", err); }
+        const data = await res.json();
+        document.getElementById("result").textContent = data.text || JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById("result").textContent = "錯誤：" + err.message;
       }
     });
   </script>
