@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>仙人指路分析系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow">
+    <h1 class="text-2xl font-bold mb-4">仙人指路分析</h1>
+
+    <!-- 模式選擇 -->
+    <div class="mb-4">
+      <label class="block font-medium">模式</label>
+      <select id="mode" class="border rounded p-2 w-full">
+        <option value="single">單人</option>
+        <option value="dual">雙人</option>
+      </select>
+    </div>
+
+    <!-- 我方輸入 -->
+    <div class="mb-4">
+      <h2 class="font-semibold">我方</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <select id="aBeast" class="border p-2 rounded">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option>
+          <option>勾陳</option><option>螣蛇</option>
+          <option>白虎</option><option>玄武</option>
+        </select>
+        <select id="aKin" class="border p-2 rounded">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option>
+          <option>子孫</option><option>妻財</option>
+          <option>官鬼</option>
+        </select>
+        <select id="aBranch" class="border p-2 rounded">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 對方輸入 (雙人模式才顯示) -->
+    <div id="dualFields" class="mb-4 hidden">
+      <h2 class="font-semibold">對方</h2>
+      <div class="grid grid-cols-3 gap-2">
+        <select id="bBeast" class="border p-2 rounded">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option>
+          <option>勾陳</option><option>螣蛇</option>
+          <option>白虎</option><option>玄武</option>
+        </select>
+        <select id="bKin" class="border p-2 rounded">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option>
+          <option>子孫</option><option>妻財</option>
+          <option>官鬼</option>
+        </select>
+        <select id="bBranch" class="border p-2 rounded">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 情境選擇 -->
+    <div class="mb-4">
+      <label class="block font-medium">情境</label>
+      <select id="context" class="border rounded p-2 w-full">
+        <option value="">請選擇</option>
+        <option>個性分析</option>
+        <option>愛情</option>
+        <option>性愛</option>
+        <option>跨部門協作</option>
+        <option>壓期交付專案</option>
+      </select>
+    </div>
+
+    <!-- 性愛補充說明 -->
+    <div class="mb-4">
+      <label class="block font-medium">性愛補充（選填）</label>
+      <textarea id="sexDetail" class="border rounded p-2 w-full" placeholder="例如：重點：互動節奏與默契；補充：喜歡慢節奏…"></textarea>
+    </div>
+
+    <!-- 按鈕 -->
+    <button id="analyzeBtn" class="bg-blue-600 text-white px-4 py-2 rounded">送出分析</button>
+
+    <!-- 結果區 -->
+    <div id="result" class="mt-6 whitespace-pre-wrap text-gray-800"></div>
+
+    <!-- 雷達圖 -->
+    <canvas id="chart" class="mt-4"></canvas>
+  </div>
+
+  <script>
+    const dualFields = document.getElementById("dualFields");
+    document.getElementById("mode").addEventListener("change", e => {
+      dualFields.classList.toggle("hidden", e.target.value !== "dual");
+    });
+
+    document.getElementById("analyzeBtn").addEventListener("click", async () => {
+      const body = {
+        mode: document.getElementById("mode").value,
+        aBeast: document.getElementById("aBeast").value,
+        aKin: document.getElementById("aKin").value,
+        aBranch: document.getElementById("aBranch").value,
+        bBeast: document.getElementById("bBeast").value,
+        bKin: document.getElementById("bKin").value,
+        bBranch: document.getElementById("bBranch").value,
+        context: document.getElementById("context").value,
+        sexDetail: document.getElementById("sexDetail").value
+      };
+
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      document.getElementById("result").textContent = data.text;
+
+      // 抓 JSON 區塊繪圖
+      const match = data.text.match(/```json([\s\S]+?)```/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[1]);
+          const ctx = document.getElementById("chart").getContext("2d");
+          new Chart(ctx, {
+            type: "radar",
+            data: {
+              labels: ["契合","溝通","節奏","責任","信任","創新"],
+              datasets: [{
+                label: "分數",
+                data: Object.values(parsed.scores),
+                borderColor: "blue",
+                backgroundColor: "rgba(0,0,255,0.2)"
+              }]
+            },
+            options: { scales: { r: { suggestedMin: 0, suggestedMax: 100 } } }
+          });
+        } catch (err) { console.error("JSON parse error", err); }
+      }
+    });
+  </script>
+</body>
+</html>
