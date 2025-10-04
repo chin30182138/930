@@ -1,50 +1,63 @@
 
+// api/analyze.js - V44.0 最終穩定版 (使用 OpenAI 官方 SDK)
+
+// 導入 OpenAI SDK
+const OpenAI = require('openai'); 
+
+// 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY; 
+// 核心修正：升級到 gpt-4o 終結超時和格式不穩定的問題
+const FINAL_MODEL = 'gpt-4o'; 
+
+const openai = new OpenAI({
+    apiKey: OPENAI_API_KEY, 
+});
+
+const SYSTEM_PROMPT = "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的『六獸-六親-地支』組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。";
+
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
-  const { mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch, context } = req.body;
-
-  // 基本分析文字（你可以再加上卦理內容）
-  let analysisText = `🔮 ${context} 分析：${aBeast}(${aKin}, ${aBranch})`;
-  if (mode === "dual") {
-    analysisText += ` 與 ${bBeast}(${bKin}, ${bBranch}) 的互動。`;
-  }
-
-  let healthTips = "";
-
-  // 健康情境 → 湯藥建議
-  if (context === "健康") {
-    if (["子", "亥"].includes(aBranch)) {
-      healthTips = "💡 健康湯藥建議：腎水偏弱，可考慮安迪湯、六味地黃丸、右歸飲、知柏地黃丸。";
-    } else if (["寅", "卯"].includes(aBranch)) {
-      healthTips = "💡 健康湯藥建議：肝木不足，可用逍遙散、加味逍遙散、四神湯、柴胡疏肝散。";
-    } else if (["巳", "午"].includes(aBranch)) {
-      healthTips = "💡 健康湯藥建議：心火過旺，可用酸棗仁湯、清心蓮子飲、天王補心丹、朱砂安神丸。";
-    } else if (["申", "酉"].includes(aBranch)) {
-      healthTips = "💡 健康湯藥建議：肺金偏弱，可用桑菊飲、銀翹散、百合固金湯、麥門冬湯。";
-    } else if (["丑","辰","未","戌"].includes(aBranch)) {
-      healthTips = "💡 健康湯藥建議：脾土不足，可用補中益氣湯、香砂六君子湯、四君子湯、參苓白朮散。";
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
     }
-  }
 
-  // 雙人模式 → 模擬互動分數
-  let scores = null;
-  if (mode === "dual") {
-    scores = {
-      fit: Math.floor(Math.random() * 10) + 1,
-      comm: Math.floor(Math.random() * 10) + 1,
-      pace: Math.floor(Math.random() * 10) + 1,
-      account: Math.floor(Math.random() * 10) + 1,
-      trust: Math.floor(Math.random() * 10) + 1,
-      innov: Math.floor(Math.random() * 10) + 1,
-    };
-  }
+    if (!OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'Server configuration error: OPENAI_API_KEY is missing.' });
+    }
 
-  return res.status(200).json({
-    text: analysisText,
-    healthTips,
-    scores
-  });
+    try {
+        const { prompt } = req.body;
+
+        if (!prompt) {
+            return res.status(400).json({ error: 'Missing required parameter: prompt.' });
+        }
+        
+        // 呼叫 OpenAI API
+        const completion = await openai.chat.completions.create({
+            model: FINAL_MODEL,
+            messages: [
+                {
+                    role: "system",
+                    content: SYSTEM_PROMPT,
+                },
+                {
+                    role: "user",
+                    content: prompt,
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 3000,
+        });
+
+        // 成功響應
+        res.status(200).json(completion);
+
+    } catch (error) {
+        console.error("OpenAI API Error:", error.message || error);
+        
+        // 處理 API 請求失敗
+        res.status(500).json({ 
+            error: '分析服務器錯誤', 
+            detail: error.message || '無法連線到 AI 服務。' 
+        });
+    }
 }
